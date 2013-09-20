@@ -60,7 +60,7 @@ static vec vdot(vec v0, vec v1)
     return _mm_add_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(0, 0, 0, 0)), 
                       _mm_add_ps(_mm_shuffle_ps(v, v, _MM_SHUFFLE(1, 1, 1, 1)), _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 2, 2, 2))));
                       */
-    return _mm_dp_ps(v0, v1, 0xffff);
+    return _mm_dp_ps(v0, v1, 0xff);
 }
 
 static vec vcross(vec v0, vec v1)
