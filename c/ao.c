@@ -112,7 +112,7 @@ ray_plane_intersect(Isect *isect, const Ray *ray, const Plane *plane)
     float d = -vdot(plane->p, plane->n);
     float v = vdot(ray->dir, plane->n);
     
-    if (fabs(v) < 1.0e-17) return;
+    if (fabs(v) < 1.0e-17)  return;
     
     float t = -(vdot(ray->org, plane->n) + d) / v;
     
@@ -208,6 +208,9 @@ void ambient_occlusion(vec *col, const Isect *isect)
 
     occlusion = (ntheta * nphi - occlusion) / (float)(ntheta * nphi);
 
+#if DBG
+    fprintf(stderr, ".2%f\n", occlusion);
+#endif
 
     col->x = occlusion;
     col->y = occlusion;
@@ -267,6 +270,9 @@ render(unsigned char *img, int w, int h, int nsubsamples)
                     
                     if (isect.hit) {
                         vec col;
+#if DBG
+                        fprintf(stderr, "%d %d %d %d\t", y, x, v, u);
+#endif
                         ambient_occlusion(&col, &isect);
                         
                         fimg[3 * (y * w + x) + 0] += col.x;
@@ -339,7 +345,10 @@ main(int argc, char **argv)
 
     init_scene();
 
+    clock_t start = clock();
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+    clock_t elapsed = clock() - start;
+    printf("%.2f sec\n", ((float) elapsed)/CLOCKS_PER_SEC);
 
     saveppm("ao.ppm", WIDTH, HEIGHT, img); 
 

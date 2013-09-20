@@ -133,31 +133,36 @@ ray_sphere_intersect_simd(__m128 *t, __m128 *hit,
     __m128 D = _mm_sub_ps(_mm_mul_ps(B, B), C);
     
     __m128 cond1 = _mm_cmpgt_ps(D, _mm_set1_ps(0.0));
-    __m128 t2 = _mm_and_ps(cond1, _mm_sub_ps(_MM_NEGATE_(B), _mm_sqrt_ps(D)));
-    __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
-    *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
-    *hit = _mm_or_ps(cond2, *hit);
-    
-    *px = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgx, _mm_mul_ps(dirx, *t))), 
-                    _mm_andnot_ps(cond2, *px));
-    *py = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgy, _mm_mul_ps(diry, *t))), 
-                    _mm_andnot_ps(cond2, *py));
-    *pz = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgz, _mm_mul_ps(dirz, *t))), 
-                    _mm_andnot_ps(cond2, *pz));
+    if (_mm_movemask_ps(cond1)) {
+        __m128 t2 = _mm_sub_ps(_MM_NEGATE_(B), _mm_sqrt_ps(D));
+        __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
+        if (_mm_movemask_ps(cond2)) {
+            *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
+            *hit = _mm_or_ps(cond2, *hit);
+            
+            *px = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgx, _mm_mul_ps(dirx, *t))), 
+                            _mm_andnot_ps(cond2, *px));
+            *py = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgy, _mm_mul_ps(diry, *t))), 
+                            _mm_andnot_ps(cond2, *py));
+            *pz = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgz, _mm_mul_ps(dirz, *t))), 
+                            _mm_andnot_ps(cond2, *pz));
 
-    *nx = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*px, _mm_set1_ps(sphere->center.x))), 
-                    _mm_andnot_ps(cond2, *nx));
-    *ny = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*py, _mm_set1_ps(sphere->center.y))), 
-                    _mm_andnot_ps(cond2, *ny));
-    *nz = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*pz, _mm_set1_ps(sphere->center.z))), 
-                    _mm_andnot_ps(cond2, *nz));
+            *nx = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*px, _mm_set1_ps(sphere->center.x))), 
+                            _mm_andnot_ps(cond2, *nx));
+            *ny = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*py, _mm_set1_ps(sphere->center.y))), 
+                            _mm_andnot_ps(cond2, *ny));
+            *nz = _mm_or_ps(_mm_and_ps(cond2, _mm_sub_ps(*pz, _mm_set1_ps(sphere->center.z))), 
+                            _mm_andnot_ps(cond2, *nz));
     
-    __m128 lengths = _mm_sqrt_ps(_mm_add_ps(_mm_mul_ps(*nx, *nx),
-                                            _mm_add_ps(_mm_mul_ps(*ny, *ny), _mm_mul_ps(*nz, *nz))));
-    __m128 cond3 = _mm_cmpgt_ps(_MM_ABSVAL_(lengths), _mm_set1_ps(1.0e-17));
-    *nx = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*nx, lengths)), _mm_andnot_ps(cond3, *nx));
-    *ny = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*ny, lengths)), _mm_andnot_ps(cond3, *ny));
-    *nz = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*nz, lengths)), _mm_andnot_ps(cond3, *nz));
+            __m128 lengths = _mm_sqrt_ps(_mm_add_ps(_mm_mul_ps(*nx, *nx),
+                                                    _mm_add_ps(_mm_mul_ps(*ny, *ny), 
+                                                               _mm_mul_ps(*nz, *nz))));
+            __m128 cond3 = _mm_cmpgt_ps(_MM_ABSVAL_(lengths), _mm_set1_ps(1.0e-17));
+            *nx = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*nx, lengths)), _mm_andnot_ps(cond3, *nx));
+            *ny = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*ny, lengths)), _mm_andnot_ps(cond3, *ny));
+            *nz = _mm_or_ps(_mm_and_ps(cond3, _mm_div_ps(*nz, lengths)), _mm_andnot_ps(cond3, *nz));
+        }
+    }
 }
 
 
@@ -192,32 +197,38 @@ ray_plane_intersect_simd(__m128 *t, __m128 *hit,
                          const Plane *plane)
 {
     __m128 d = _MM_NEGATE_(_mm_add_ps(_mm_mul_ps(_mm_set1_ps(plane->p.x), _mm_set1_ps(plane->n.x)), 
-                                      _mm_add_ps(_mm_mul_ps(_mm_set1_ps(plane->p.y), _mm_set1_ps(plane->n.y)), 
-                                                 _mm_mul_ps(_mm_set1_ps(plane->p.z), _mm_set1_ps(plane->n.z)))));
+                                      _mm_add_ps(_mm_mul_ps(_mm_set1_ps(plane->p.y), 
+                                                            _mm_set1_ps(plane->n.y)), 
+                                                 _mm_mul_ps(_mm_set1_ps(plane->p.z), 
+                                                            _mm_set1_ps(plane->n.z)))));
     __m128 v = _mm_add_ps(_mm_mul_ps(dirx, _mm_set1_ps(plane->n.x)), 
-                          _mm_add_ps(_mm_mul_ps(diry, _mm_set1_ps(plane->n.y)), _mm_mul_ps(dirz, _mm_set1_ps(plane->n.z))));
+                          _mm_add_ps(_mm_mul_ps(diry, _mm_set1_ps(plane->n.y)), 
+                                     _mm_mul_ps(dirz, _mm_set1_ps(plane->n.z))));
     
     __m128 cond1 = _mm_cmpgt_ps(_MM_ABSVAL_(v), _mm_set1_ps(1.0e-17));
     __m128 dp = _mm_add_ps(_mm_mul_ps(orgx, _mm_set1_ps(plane->n.x)), 
-                           _mm_add_ps(_mm_mul_ps(orgy, _mm_set1_ps(plane->n.y)), _mm_mul_ps(orgz, _mm_set1_ps(plane->n.z))));
+                           _mm_add_ps(_mm_mul_ps(orgy, _mm_set1_ps(plane->n.y)), 
+                                      _mm_mul_ps(orgz, _mm_set1_ps(plane->n.z))));
     __m128 t2 = _mm_and_ps(cond1, _mm_div_ps(_MM_NEGATE_(_mm_add_ps(dp, d)), v));
     __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
-    *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
-    *hit = _mm_or_ps(cond2, *hit);
+    if (_mm_movemask_ps(cond2)) {
+        *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
+        *hit = _mm_or_ps(cond2, *hit);
     
-    *px = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgx, _mm_mul_ps(dirx, *t))), 
-                    _mm_andnot_ps(cond2, *px));
-    *py = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgy, _mm_mul_ps(diry, *t))), 
-                    _mm_andnot_ps(cond2, *py));
-    *pz = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgz, _mm_mul_ps(dirz, *t))), 
-                    _mm_andnot_ps(cond2, *pz));
+        *px = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgx, _mm_mul_ps(dirx, *t))), 
+                        _mm_andnot_ps(cond2, *px));
+        *py = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgy, _mm_mul_ps(diry, *t))), 
+                        _mm_andnot_ps(cond2, *py));
+        *pz = _mm_or_ps(_mm_and_ps(cond2, _mm_add_ps(orgz, _mm_mul_ps(dirz, *t))), 
+                        _mm_andnot_ps(cond2, *pz));
 
-    *nx = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.x)), 
-                    _mm_andnot_ps(cond2, *nx));
-    *ny = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.y)), 
-                    _mm_andnot_ps(cond2, *ny));
-    *nz = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.z)), 
-                    _mm_andnot_ps(cond2, *nz));
+        *nx = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.x)), 
+                        _mm_andnot_ps(cond2, *nx));
+        *ny = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.y)), 
+                        _mm_andnot_ps(cond2, *ny));
+        *nz = _mm_or_ps(_mm_and_ps(cond2, _mm_set1_ps(plane->n.z)), 
+                        _mm_andnot_ps(cond2, *nz));
+    }
 }
 
 void
@@ -323,7 +334,11 @@ void ambient_occlusion(vec *col, const Isect *isect)
     _mm_store_ps(occlusionTmp, occlusionx4);
     occlusion = occlusionTmp[0] + occlusionTmp[1] + occlusionTmp[2] + occlusionTmp[3];
     occlusion = (ntheta * nphi - occlusion) / (float)(ntheta * nphi);
-    
+
+#if DBG
+    fprintf(stderr, ".2%f\n", occlusion);
+#endif
+
     col->x = occlusion;
     col->y = occlusion;
     col->z = occlusion;
@@ -382,6 +397,9 @@ render(unsigned char *img, int w, int h, int nsubsamples)
                     
                     if (isect.hit) {
                         vec col;
+#if DBG
+                        fprintf(stderr, "%d %d %d %d\t", y, x, v, u);
+#endif
                         ambient_occlusion(&col, &isect);
                         
                         fimg[3 * (y * w + x) + 0] += col.x;
@@ -454,7 +472,10 @@ main(int argc, char **argv)
 
     init_scene();
 
+    clock_t start = clock();
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+    clock_t elapsed = clock() - start;
+    printf("%.2f sec\n", ((float) elapsed)/CLOCKS_PER_SEC);
 
     saveppm("ao.ppm", WIDTH, HEIGHT, img); 
 

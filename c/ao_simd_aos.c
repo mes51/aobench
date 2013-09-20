@@ -304,7 +304,10 @@ main(int argc, char **argv)
 
     init_scene();
 
+    clock_t start = clock();
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+    clock_t elapsed = clock() - start;
+    printf("%.2f sec\n", ((float) elapsed)/CLOCKS_PER_SEC);
 
     saveppm("ao.ppm", WIDTH, HEIGHT, img); 
 
