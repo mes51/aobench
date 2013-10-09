@@ -1,0 +1,3 @@
+[submodule "js/polyfill"]
+	path = js/polyfill
+	url = https://github.com/johnmccutchan/ecmascript_simd.git

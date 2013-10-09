@@ -61,9 +61,9 @@ function ray_sphere_intersect(isect, ray, sphere)
             isect.n.z = isect.p.z - sphere.center.z;
             
             vnormalize(isect.n);
-            
         }
     }
+    
 }
 
 
@@ -152,8 +152,8 @@ function ambient_occlusion(col, isect)
             var occIsect = {
                 t: 1e17,
                 hit: 0,
-                p: {},
-                n: {}
+                p: { x:0, y:0, z:0 },
+                n: { x:0, y:0, z:0 }
             };
             
             ray_sphere_intersect(occIsect, ray, spheres[0]);
@@ -196,9 +196,9 @@ function render(img, w, h, nsubsamples)
                     var isect = {
                         t: 1e17,
                         hit: 0,
-                        p: {},
-                        n: {}
-                    };
+                        p: { x:0, y:0, z:0 },
+                        n: { x:0, y:0, z:0 }
+                    }; 
                     
                     ray_sphere_intersect(isect, ray, spheres[0]);
                     ray_sphere_intersect(isect, ray, spheres[1]);
@@ -225,7 +225,6 @@ function render(img, w, h, nsubsamples)
             img[4 * (y * w + x) + 1] = fimg[3 *(y * w + x) + 1] * 255.5;
             img[4 * (y * w + x) + 2] = fimg[3 *(y * w + x) + 2] * 255.5;
             img[4 * (y * w + x) + 3] = 255;
-                        
         }
     }
 }
@@ -270,7 +269,7 @@ function init_scene() {
     };
 }
 
-function main() {    
+function main() {  
     var ctx = document.getElementById('canvas').getContext('2d');
     ctx.canvas.width = WIDTH;
     ctx.canvas.height = HEIGHT;
