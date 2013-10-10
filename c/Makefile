@@ -2,7 +2,7 @@ CC      = /usr/bin/cc
 CCFLAGS = -c -Wall -msse4.1 -DUSE_SSE2 -g 
 LDFLAGS = -lm
 
-SRCS    = ao.c ao_simd_soa.c ao_simd_aos.c ao_simd_soa_inlined.c
+SRCS    = ao.c ao_simd_soa.c ao_simd_aos.c ao_simd_soa_inlined.c ao_simd_soa_nossemath.c
 OBJS    = $(SRCS:.c=.o)
 EXES    = $(SRCS:.c=)
 OBJSd   = $(SRCS:.c=_dbg.o)
@@ -26,8 +26,7 @@ $(EXESd): %_dbg: %_dbg.o
 	$(CC) $< $(LDFLAGS) -o $@
 
 run:
-	./ao; ./ao_simd_aos; ./ao_simd_soa; ./ao_simd_soa_inlined; \
-	./ao_dbg 2> seq.txt; ./ao_simd_soa_dbg 2> soa.txt; diff seq.txt soa.txt \
+	./ao; ./ao_simd_aos; ./ao_simd_soa; ./ao_simd_soa_inlined; ./ao_simd_soa_nossemath; 
 
 clean:
-	rm -rf $(OBJS) $(EXES) $(OBJSd) $(EXESd) ao.ppm seq.txt soa.txt
+	rm -rf $(OBJS) $(EXES) $(OBJSd) $(EXESd) ao.ppm 

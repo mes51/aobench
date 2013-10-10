@@ -472,10 +472,14 @@ main(int argc, char **argv)
 
     init_scene();
 
+#ifndef DBG
     clock_t start = clock();
+#endif
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+#ifndef DBG
     clock_t elapsed = clock() - start;
     printf("%.2f sec\n", ((float) elapsed)/CLOCKS_PER_SEC);
+#endif
 
     saveppm("ao.ppm", WIDTH, HEIGHT, img); 
 

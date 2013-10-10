@@ -133,10 +133,14 @@ ray_sphere_intersect_simd(__m128 *t, __m128 *hit,
     __m128 D = _mm_sub_ps(_mm_mul_ps(B, B), C);
     
     __m128 cond1 = _mm_cmpgt_ps(D, _mm_set1_ps(0.0));
-    __m128 t2 = _mm_and_ps(cond1, _mm_sub_ps(_MM_NEGATE_(B), _mm_sqrt_ps(D)));
-    __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
-    *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
-    *hit = _mm_or_ps(cond2, *hit);
+    if (_mm_movemask_ps(cond1)) {
+        __m128 t2 = _mm_sub_ps(_MM_NEGATE_(B), _mm_sqrt_ps(D));
+        __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
+        if (_mm_movemask_ps(cond2)) {
+            *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
+            *hit = _mm_or_ps(cond2, *hit);
+        }
+    }
 }
 
 
@@ -177,8 +181,10 @@ ray_plane_intersect_simd(__m128 *t, __m128 *hit,
                            _mm_add_ps(_mm_mul_ps(orgy, _mm_set1_ps(plane->n.y)), _mm_mul_ps(orgz, _mm_set1_ps(plane->n.z))));
     __m128 t2 = _mm_and_ps(cond1, _mm_div_ps(_MM_NEGATE_(_mm_add_ps(dp, d)), v));
     __m128 cond2 = _mm_and_ps(_mm_cmpgt_ps(t2, _mm_set1_ps(0.0)), _mm_cmplt_ps(t2, *t));
-    *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
-    *hit = _mm_or_ps(cond2, *hit);
+    if (_mm_movemask_ps(cond2)) {
+        *t = _mm_or_ps(_mm_and_ps(cond2, t2), _mm_andnot_ps(cond2, *t));
+        *hit = _mm_or_ps(cond2, *hit);
+    }
 }
 
 void
@@ -418,10 +424,14 @@ main(int argc, char **argv)
 
     init_scene();
 
+#ifndef DBG
     clock_t start = clock();
+#endif
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+#ifndef DBG
     clock_t elapsed = clock() - start;
     printf("%.2f sec\n", ((float) elapsed)/CLOCKS_PER_SEC);
+#endif
 
     saveppm("ao.ppm", WIDTH, HEIGHT, img); 
 
