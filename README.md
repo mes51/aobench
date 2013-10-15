@@ -1,6 +1,6 @@
 Original sequential C version of aobench from https://code.google.com/p/aobench/
 
-Live hosting of JS versions of aobench: [sequential] (http://wahbahdoo.github.io/aobench/js/ao.html); [SIMD (polyfill, i.e. slow!)] (http://wahbahdoo.github.io/aobench/js/ao_simd.html)
+Live hosting of JS versions of aobench: [sequential] (http://wahbahdoo.github.io/aobench/js/ao.html); [SIMD] (http://wahbahdoo.github.io/aobench/js/ao_simd.html) (polyfill, i.e. slow!)
 
 Multiple versions of SIMD implementations in C:
 * \_aos: array of structures; rgb values mapped to 3 out of 4 lanes of vector ops
