@@ -275,7 +275,10 @@ function main() {
     ctx.canvas.height = HEIGHT;
     var imgData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
     var img = imgData.data;
-    init_scene();
+    init_scene();    console.log("rendering...");
+    var timer = performance.now();
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
+    timer = performance.now() - timer;
+    console.log('...done rendering (' + (Math.round(timer * 100) / 100) + ' ms)');
     ctx.putImageData(imgData, 0, 0);
 }
