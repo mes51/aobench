@@ -88,7 +88,7 @@ function ray_sphere_intersect_simd(isect, dirx, diry, dirz, orgx, orgy, orgz, sp
         if (cond2.signMask) {
             isect.t = SIMD.bitsToFloat32x4(SIMD.or(SIMD.and(cond2, SIMD.bitsToUint32x4(t2)), 
                                                    SIMD.and(SIMD.negu32(cond2), SIMD.bitsToUint32x4(isect.t))));
-            isect.hit = SIMD.or(cond2, SIMD.bitsToUint32x4(isect.hit));
+            isect.hit = SIMD.or(cond2, SIMD.isect.hit);
             
             isect.p.x = SIMD.bitsToFloat32x4(
                 SIMD.or(SIMD.and(cond2, SIMD.bitsToUint32x4(SIMD.add(orgx, SIMD.mul(dirx, isect.t)))),
@@ -166,7 +166,7 @@ function ray_plane_intersect_simd(isect, dirx, diry, dirz, orgx, orgy, orgz, pla
     if (cond2.signMask) {
         isect.t = SIMD.bitsToFloat32x4(SIMD.or(SIMD.and(cond2, SIMD.bitsToUint32x4(t2)),
                                                SIMD.and(SIMD.negu32(cond2), SIMD.bitsToUint32x4(isect.t))));
-        isect.hit = SIMD.or(cond2, SIMD.bitsToUint32x4(isect.hit));
+        isect.hit = SIMD.or(cond2, SIMD.isect.hit);
         isect.p.x = SIMD.bitsToFloat32x4(
             SIMD.or(SIMD.and(cond2, SIMD.bitsToUint32x4(SIMD.add(orgx, SIMD.mul(dirx, isect.t)))),
                     SIMD.and(SIMD.negu32(cond2), SIMD.bitsToUint32x4(isect.p.x)))); 
