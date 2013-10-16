@@ -410,6 +410,6 @@ function main() {
     var timer = performance.now();
     render(img, WIDTH, HEIGHT, NSUBSAMPLES);
     timer = performance.now() - timer;
-    console.log('...done rendering (' + (Math.round(timer * 100) / 100) + ' ms)');
+    console.log('...done rendering (' + timer.toFixed(2) + ' ms)');
     ctx.putImageData(imgData, 0, 0);
 }
